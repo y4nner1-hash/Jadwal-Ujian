@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistem Penjadwalan Ujian & Beban Menguji</title>
+<style>
+:root {
+    --primary: #1a5276; --secondary: #2874a6; --accent: #f39c12;
+    --success: #27ae60; --danger: #c0392b; --light: #ecf0f1;
+    --dark: #2c3e50; --white: #ffffff; --info: #3498db;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f6fa; color: var(--dark); line-height: 1.6; }
+.container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+
+/* LOGIN */
+.login-wrap { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(135deg, var(--primary), var(--secondary)); }
+.login-box { background: white; padding: 40px; border-radius: 16px; width: 100%; max-width: 420px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
+.login-box h1 { text-align: center; color: var(--primary); margin-bottom: 8px; font-size: 1.6rem; }
+.login-box p { text-align: center; color: #888; margin-bottom: 25px; font-size: 0.9rem; }
+.login-box .form-group { margin-bottom: 18px; }
+.login-box label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem; color: #555; }
+.login-box input, .login-box select { width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 0.95rem; }
+.login-box input:focus, .login-box select:focus { outline: none; border-color: var(--secondary); }
+.login-box .btn { width: 100%; padding: 12px; font-size: 1rem; margin-top: 10px; }
+.role-select { display: flex; gap: 10px; margin-bottom: 20px; }
+.role-option { flex: 1; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; text-align: center; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all 0.2s; }
+.role-option:hover { border-color: var(--secondary); color: var(--secondary); }
+.role-option.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+/* HEADER & NAV */
+header { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; padding: 20px 25px; border-radius: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+header h1 { font-size: 1.5rem; }
+header .user-info { font-size: 0.9rem; opacity: 0.9; }
+header .logout-btn { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4); padding: 6px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+header .logout-btn:hover { background: rgba(255,255,255,0.3); }
+
+.nav-tabs { display: flex; gap: 8px; margin-bottom: 25px; flex-wrap: wrap; }
+.nav-tab { padding: 10px 20px; background: white; border: 2px solid var(--light); border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s; color: var(--dark); font-size: 0.9rem; }
+.nav-tab:hover { border-color: var(--secondary); color: var(--secondary); }
+.nav-tab.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+.panel { display: none; }
+.panel.active { display: block; }
+
+.card { background: white; border-radius: 12px; padding: 25px; margin-bottom: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+.card h2 { font-size: 1.2rem; color: var(--primary); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid var(--light); }
+
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px; margin-bottom: 20px; }
+.form-group label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.88rem; color: #555; }
+.form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 0.92rem; }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--secondary); }
+
+.btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: all 0.3s; display: inline-flex; align-items: center; gap: 6px; }
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:hover { background: var(--secondary); }
+.btn-success { background: var(--success); color: white; }
+.btn-success:hover { background: #219a52; }
+.btn-danger { background: var(--danger); color: white; }
+.btn-danger:hover { background: #a93226; }
+.btn-warning { background: var(--accent); color: white; }
+.btn-info { background: var(--info); color: white; }
+.btn-sm { padding: 6px 12px; font-size: 0.8rem; }
+
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #eee; }
+th { background: var(--primary); color: white; font-weight: 600; position: sticky; top: 0; }
+tr:hover { background: #f8f9fa; }
+.badge { padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+.badge-sup { background: #e8f5e9; color: var(--success); }
+.badge-shp { background: #e3f2fd; color: var(--secondary); }
+.badge-tesis { background: #fff3e0; color: #e65100; }
+.badge-admin { background: #fce4ec; color: #c2185b; }
+.badge-dosen { background: #e8eaf6; color: #303f9f; }
+.badge-mhs { background: #e0f7fa; color: #00838f; }
+
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 15px; margin-bottom: 25px; }
+.stat-card { background: white; padding: 18px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: center; border-top: 4px solid var(--secondary); }
+.stat-card h3 { font-size: 1.8rem; color: var(--primary); }
+.stat-card p { color: #777; font-size: 0.85rem; margin-top: 4px; }
+
+.jadwal-grid { display: grid; grid-template-columns: 90px repeat(3, 1fr); gap: 1px; background: #ddd; border-radius: 8px; overflow: hidden; }
+.jadwal-header, .jadwal-cell, .jadwal-time { background: white; padding: 10px; text-align: center; font-size: 0.85rem; }
+.jadwal-header { background: var(--primary); color: white; font-weight: 600; }
+.jadwal-time { background: #f8f9fa; font-weight: 600; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; }
+.jadwal-cell { min-height: 70px; cursor: pointer; transition: background 0.2s; position: relative; }
+.jadwal-cell:hover { background: #e3f2fd; }
+.jadwal-cell.occupied { background: #e8f5e9; font-size: 0.8rem; }
+.jadwal-cell.occupied .jadwal-mhs { font-weight: 700; color: var(--primary); font-size: 0.82rem; }
+.jadwal-cell.occupied .jadwal-dosen { font-size: 0.72rem; color: #555; margin-top: 3px; }
+.jadwal-cell.bentrok { background: #ffebee !important; border: 2px solid var(--danger); }
+.jadwal-cell.bentrok::after { content: "⚠️ BENTROK"; display: block; font-size: 0.65rem; color: var(--danger); font-weight: 700; margin-top: 2px; }
+.jadwal-cell .mobile-tag { font-size: 0.65rem; color: var(--accent); font-weight: 700; }
+
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+.modal-overlay.show { display: flex; }
+.modal { background: white; border-radius: 16px; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; padding: 25px; animation: modalIn 0.3s ease; }
+@keyframes modalIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+.modal h2 { margin-bottom: 20px; color: var(--primary); }
+.modal-close { float: right; font-size: 1.5rem; cursor: pointer; color: #999; }
+.modal-close:hover { color: var(--danger); }
+
+.action-btns { display: flex; gap: 6px; }
+.empty-state { text-align: center; padding: 40px; color: #999; }
+.dosen-count { display: inline-block; background: var(--accent); color: white; padding: 2px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 700; margin-left: 8px; }
+
+.export-btns { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+.db-actions { background: #fff8e1; border: 1px solid #ffe082; border-radius: 10px; padding: 15px; margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.db-actions span { font-weight: 600; color: #f57c00; margin-right: 10px; }
+
+.toast { position: fixed; bottom: 25px; right: 25px; background: var(--dark); color: white; padding: 14px 24px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transform: translateY(100px); transition: transform 0.3s; z-index: 2000; font-weight: 500; }
+.toast.show { transform: translateY(0); }
+.toast.success { background: var(--success); }
+.toast.error { background: var(--danger); }
+
+.view-only { background: #f8f9fa; border-left: 4px solid var(--info); padding: 15px; border-radius: 8px; margin-bottom: 20px; color: var(--info); font-weight: 600; }
+
+@media (max-width: 768px) {
+    .jadwal-grid { grid-template-columns: 70px repeat(3, 1fr); }
+    .form-grid { grid-template-columns: 1fr; }
+    .nav-tab { padding: 8px 14px; font-size: 0.85rem; }
+    header { flex-direction: column; align-items: flex-start; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===================== LOGIN SCREEN ===================== -->
+<div id="login-screen" class="login-wrap">
+    <div class="login-box">
+        <h1>📚 Sistem Penjadwalan Ujian</h1>
+        <p>Silakan pilih peran dan masukkan kredensial Anda</p>
+
+        <div class="role-select">
+            <div class="role-option active" onclick="selectRole('admin')">👤 Admin</div>
+            <div class="role-option" onclick="selectRole('dosen')">👨‍🏫 Dosen</div>
+            <div class="role-option" onclick="selectRole('mahasiswa')">🎓 Mahasiswa</div>
+        </div>
+
+        <div class="form-group">
+            <label>Username / NIM / NIDN</label>
+            <input type="text" id="login-user" placeholder="Masukkan...">
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="login-pass" placeholder="Masukkan password...">
+        </div>
+        <div class="form-group" id="login-dosen-select" style="display:none">
+            <label>Pilih Dosen</label>
+            <select id="login-dosen-list"><option value="">-- Pilih Dosen --</option></select>
+        </div>
+        <div class="form-group" id="login-mhs-select" style="display:none">
+            <label>Pilih Mahasiswa</label>
+            <select id="login-mhs-list"><option value="">-- Pilih Mahasiswa --</option></select>
+        </div>
+
+        <button class="btn btn-primary" onclick="doLogin()">🔓 Masuk</button>
+        <div style="margin-top:15px; text-align:center; font-size:0.8rem; color:#999">
+            <b>Default Admin:</b> user: admin | pass: admin123
+        </div>
+    </div>
+</div>
+
+<!-- ===================== MAIN APP ===================== -->
+<div id="main-app" style="display:none">
+    <div class="container">
+        <header>
+            <div>
+                <h1>📚 Sistem Penjadwalan Ujian & Beban Menguji</h1>
+                <div class="user-info" id="user-display"></div>
+            </div>
+            <button class="logout-btn" onclick="doLogout()">🚪 Keluar</button>
+        </header>
+
+        <div class="nav-tabs" id="nav-tabs">
+            <div class="nav-tab active" onclick="switchTab('dashboard')" data-admin>📊 Dashboard</div>
+            <div class="nav-tab" onclick="switchTab('dosen')" data-admin>👨‍🏫 Data Dosen</div>
+            <div class="nav-tab" onclick="switchTab('mahasiswa')" data-admin>🎓 Data Mahasiswa</div>
+            <div class="nav-tab" onclick="switchTab('beban')" data-admin>⚖️ Beban Menguji</div>
+            <div class="nav-tab" onclick="switchTab('jadwal')">📅 Jadwal Ujian</div>
+            <div class="nav-tab" onclick="switchTab('jadwal-saya')" data-mhs-dosen>📋 Jadwal Saya</div>
+        </div>
+
+        <!-- DASHBOARD -->
+        <div id="panel-dashboard" class="panel active">
+            <div class="stats-grid">
+                <div class="stat-card"><h3 id="stat-dosen">0</h3><p>Total Dosen</p></div>
+                <div class="stat-card"><h3 id="stat-mhs">0</h3><p>Total Mahasiswa</p></div>
+                <div class="stat-card"><h3 id="stat-sup">0</h3><p>Ujian SUP</p></div>
+                <div class="stat-card"><h3 id="stat-shp">0</h3><p>Ujian SHP</p></div>
+                <div class="stat-card"><h3 id="stat-tesis">0</h3><p>Ujian Tesis</p></div>
+                <div class="stat-card"><h3 id="stat-jadwal">0</h3><p>Terjadwal</p></div>
+            </div>
+            <div class="card" data-admin>
+                <h2>Ringkasan Beban Menguji Tertinggi</h2>
+                <div class="table-wrap"><table id="table-ringkasan"><thead><tr><th>No</th><th>Nama Dosen</th><th>Jabatan</th><th>Total Menguji</th></tr></thead><tbody></tbody></table></div>
+            </div>
+        </div>
+
+        <!-- DOSEN -->
+        <div id="panel-dosen" class="panel">
+            <div class="db-actions" data-admin>
+                <span>💾 Database:</span>
+                <button class="btn btn-success btn-sm" onclick="exportDatabase()">📤 Export DB JSON</button>
+                <button class="btn btn-info btn-sm" onclick="document.getElementById('import-db').click()">📥 Import DB JSON</button>
+                <input type="file" id="import-db" style="display:none" accept=".json" onchange="importDatabase(event)">
+                <button class="btn btn-warning btn-sm" onclick="resetToDefault()">🔄 Reset Data Awal</button>
+                <button class="btn btn-danger btn-sm" onclick="clearAllData()">🗑️ Hapus Semua</button>
+            </div>
+            <div class="card" data-admin>
+                <h2>Tambah / Edit Dosen</h2>
+                <div class="form-grid">
+                    <div class="form-group"><label>Nama Lengkap</label><input type="text" id="dosen-nama" placeholder="Contoh: Prof. Dr. Dikdik Harjadi, M.Si"></div>
+                    <div class="form-group"><label>NIDN (juga sebagai password)</label><input type="text" id="dosen-nidn" placeholder="Contoh: 0012345678"></div>
+                    <div class="form-group"><label>Jabatan Fungsional</label>
+                        <select id="dosen-jabatan"><option value="Profesor">Profesor</option><option value="Lektor Kepala">Lektor Kepala</option><option value="Lektor">Lektor</option><option value="Asisten Ahli">Asisten Ahli</option><option value="Tenaga Pengajar">Tenaga Pengajar</option></select>
+                    </div>
+                    <div class="form-group"><label>Gelar</label><input type="text" id="dosen-gelar" placeholder="Contoh: M.Si, M.M, M.Pd"></div>
+                </div>
+                <button class="btn btn-primary" onclick="saveDosen()">💾 Simpan Dosen</button>
+                <button class="btn btn-warning" onclick="resetDosenForm()" style="margin-left:10px">🔄 Reset Form</button>
+            </div>
+            <div class="card" data-admin>
+                <h2>Daftar Dosen</h2>
+                <div class="export-btns">
+                    <button class="btn btn-success btn-sm" onclick="exportDosenCSV()">📥 Export CSV Dosen</button>
+                </div>
+                <div class="table-wrap"><table id="table-dosen"><thead><tr><th>No</th><th>Nama</th><th>NIDN</th><th>Jabatan</th><th>Gelar</th><th>Aksi</th></tr></thead><tbody></tbody></table></div>
+            </div>
+        </div>
+
+        <!-- MAHASISWA -->
+        <div id="panel-mahasiswa" class="panel">
+            <div class="db-actions" data-admin>
+                <span>💾 Database:</span>
+                <button class="btn btn-success btn-sm" onclick="exportDatabase()">📤 Export DB JSON</button>
+                <button class="btn btn-info btn-sm" onclick="document.getElementById('import-db2').click()">📥 Import DB JSON</button>
+                <input type="file" id="import-db2" style="display:none" accept=".json" onchange="importDatabase(event)">
+                <button class="btn btn-warning btn-sm" onclick="resetToDefault()">🔄 Reset Data Awal</button>
+                <button class="btn btn-danger btn-sm" onclick="clearAllData()">🗑️ Hapus Semua</button>
+            </div>
+            <div class="card" data-admin>
+                <h2>Tambah / Edit Mahasiswa</h2>
+                <div class="form-grid">
+                    <div class="form-group"><label>NIM (juga sebagai password)</label><input type="text" id="mhs-nim" placeholder="20241710001"></div>
+                    <div class="form-group"><label>Nama Mahasiswa</label><input type="text" id="mhs-nama" placeholder="Nama Lengkap"></div>
+                    <div class="form-group"><label>Jenis Ujian</label><select id="mhs-jenis" onchange="updateFormJenis()"><option value="SUP">SUP</option><option value="SHP">SHP</option><option value="Tesis">Tesis</option></select></div>
+                    <div class="form-group"><label>Judul Penelitian</label><textarea id="mhs-judul" rows="2" placeholder="Judul..."></textarea></div>
+                    <div class="form-group"><label>Pembimbing I</label><select id="mhs-pembimbing1"><option value="">-- Pilih --</option></select></div>
+                    <div class="form-group"><label>Pembimbing II</label><select id="mhs-pembimbing2"><option value="">-- Pilih --</option></select></div>
+                    <div class="form-group" id="fg-penguji1"><label>Penguji I</label><select id="mhs-penguji1"><option value="">-- Pilih --</option></select></div>
+                    <div class="form-group" id="fg-penguji2"><label>Penguji II</label><select id="mhs-penguji2"><option value="">-- Pilih --</option></select></div>
+                    <div class="form-group" id="fg-penguji3"><label>Penguji III</label><select id="mhs-penguji3"><option value="">-- Pilih --</option></select></div>
+                    <div class="form-group" id="fg-moderator" style="display:none"><label>Moderator</label><select id="mhs-moderator"><option value="">-- Pilih --</option></select></div>
+                    <div class="form-group" id="fg-penelaah" style="display:none"><label>Penelaah</label><select id="mhs-penelaah"><option value="">-- Pilih --</option></select></div>
+                </div>
+                <button class="btn btn-primary" onclick="saveMahasiswa()">💾 Simpan</button>
+                <button class="btn btn-warning" onclick="resetMhsForm()" style="margin-left:10px">🔄 Reset</button>
+            </div>
+            <div class="card" data-admin>
+                <h2>Daftar Mahasiswa</h2>
+                <div class="export-btns">
+                    <button class="btn btn-success btn-sm" onclick="exportMhsCSV()">📥 Export CSV Mhs</button>
+                    <button class="btn btn-success btn-sm" onclick="exportSUP_CSV()">📥 Export CSV SUP</button>
+                    <button class="btn btn-success btn-sm" onclick="exportSHP_CSV()">📥 Export CSV SHP</button>
+                    <button class="btn btn-success btn-sm" onclick="exportTesisCSV()">📥 Export CSV Tesis</button>
+                </div>
+                <div class="table-wrap"><table id="table-mahasiswa"><thead><tr><th>No</th><th>NIM</th><th>Nama</th><th>Jenis</th><th>Judul</th><th>Pembimbing</th><th>Penguji</th><th>Aksi</th></tr></thead><tbody></tbody></table></div>
+            </div>
+        </div>
+
+        <!-- BEBAN MENGUJI -->
+        <div id="panel-beban" class="panel">
+            <div class="card" data-admin>
+                <h2>Rekapitulasi Beban Menguji</h2>
+                <div class="export-btns"><button class="btn btn-success btn-sm" onclick="exportBebanCSV()">📥 Export CSV Beban</button></div>
+                <div class="table-wrap"><table id="table-beban"><thead><tr><th>No</th><th>Nama Dosen</th><th>NIDN</th><th>Jabatan</th><th>SUP</th><th>SHP</th><th>Tesis</th><th>Total</th></tr></thead><tbody></tbody></table></div>
+            </div>
+            <div class="card" data-admin>
+                <h2>Detail per Mahasiswa</h2>
+                <div class="table-wrap"><table id="table-detail-beban"><thead><tr><th>No</th><th>NIM</th><th>Nama</th><th>Jenis</th><th>Pembimbing I</th><th>Pembimbing II</th><th>Penguji/Moderator/Penelaah</th></tr></thead><tbody></tbody></table></div>
+            </div>
+        </div>
+
+        <!-- JADWAL (Admin + Dosen) -->
+        <div id="panel-jadwal" class="panel">
+            <div class="db-actions" data-admin>
+                <span>🤖 Auto Schedule:</span>
+                <button class="btn btn-success btn-sm" onclick="autoSchedule()">⚡ Buat Jadwal Otomatis</button>
+                <button class="btn btn-danger btn-sm" onclick="clearAllJadwal()">🗑️ Kosongkan Semua Jadwal</button>
+                <button class="btn btn-info btn-sm" onclick="exportJadwalJumatCSV()">📥 Export Jadwal Jumat</button>
+                <button class="btn btn-info btn-sm" onclick="exportJadwalSabtuCSV()">📥 Export Jadwal Sabtu</button>
+            </div>
+            <div class="card">
+                <h2>Pengaturan Jadwal</h2>
+                <div class="form-grid">
+                    <div class="form-group"><label>Hari</label><select id="jadwal-hari"><option value="Jumat">Jumat</option><option value="Sabtu">Sabtu</option></select></div>
+                    <div class="form-group"><label>Ruangan</label><select id="jadwal-ruangan"><option value="Ruangan 1">Ruangan 1</option><option value="Ruangan 2">Ruangan 2</option><option value="Ruangan 3">Ruangan 3</option></select></div>
+                </div>
+            </div>
+            <div class="card">
+                <h2>Jadwal Ujian <span id="jadwal-title">Jumat - Ruangan 1</span></h2>
+                <div class="export-btns" data-admin>
+                    <button class="btn btn-success btn-sm" onclick="exportJadwalCSV()">📥 Export CSV Jadwal Ini</button>
+                    <button class="btn btn-danger btn-sm" onclick="clearJadwal()">🗑️ Kosongkan Jadwal Ini</button>
+                </div>
+                <div id="jadwal-container"></div>
+            </div>
+        </div>
+
+        <!-- JADWAL SAYA (Mahasiswa & Dosen) -->
+        <div id="panel-jadwal-saya" class="panel">
+            <div class="view-only" id="view-only-msg"></div>
+            <div class="card">
+                <h2>Jadwal Saya</h2>
+                <div class="table-wrap"><table id="table-jadwal-saya"><thead><tr><th>Hari</th><th>Waktu</th><th>Ruangan</th><th>NIM</th><th>Nama</th><th>Judul</th><th>Peran Saya</th><th>Dosen Lain</th></tr></thead><tbody></tbody></table></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL JADWAL -->
+<div class="modal-overlay" id="modal-jadwal">
+    <div class="modal">
+        <span class="modal-close" onclick="closeModal()">&times;</span>
+        <h2>📝 Atur Jadwal</h2>
+        <div class="form-grid">
+            <div class="form-group"><label>Waktu</label><input type="text" id="modal-waktu" readonly></div>
+            <div class="form-group"><label>Mahasiswa</label><select id="modal-mhs" onchange="updateModalDosen()"><option value="">-- Pilih Mahasiswa --</option></select></div>
+            <div class="form-group"><label>Penguji I / Penelaah</label><input type="text" id="modal-p1" readonly></div>
+            <div class="form-group"><label>Penguji II / Moderator</label><input type="text" id="modal-p2" readonly></div>
+            <div class="form-group" id="modal-fg-p3"><label>Penguji III</label><input type="text" id="modal-p3" readonly></div>
+        </div>
+        <div id="modal-bentrok-info" style="display:none; background:#ffebee; padding:12px; border-radius:8px; margin-bottom:15px; color:var(--danger); font-weight:600;"></div>
+        <button class="btn btn-success" onclick="saveJadwalCell()">✅ Simpan ke Jadwal</button>
+        <button class="btn btn-danger" onclick="hapusJadwalCell()">🗑️ Hapus dari Jadwal</button>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===================== DATA DEFAULT =====================
+const DEFAULT_DATA = {"dosen":[{"id":"dsn_1","nama":"Prof. Dr. Dikdik Harjadi, M.Si","jabatan":"Profesor","gelar":"M.Si","nidn":"001"},{"id":"dsn_2","nama":"Dr. Lili Karmela Fitriani, M.Si","jabatan":"Lektor Kepala","gelar":"M.Si","nidn":"002"},{"id":"dsn_3","nama":"Dr. Herma Wiharno, M.Si","jabatan":"Lektor Kepala","gelar":"M.Si","nidn":"003"},{"id":"dsn_4","nama":"Dr. Dede Djuniardi, M.M","jabatan":"Lektor Kepala","gelar":"M.M","nidn":"004"},{"id":"dsn_5","nama":"Dr. Odang Supriatna, M.M","jabatan":"Lektor Kepala","gelar":"M.M","nidn":"005"},{"id":"dsn_6","nama":"Dr. Yanneri Elfa Kiswara R., M.M","jabatan":"Lektor Kepala","gelar":"M.M","nidn":"006"},{"id":"dsn_7","nama":"Dr. Ayus Ahmad Yusuf, M.M","jabatan":"Lektor Kepala","gelar":"M.M","nidn":"007"},{"id":"dsn_8","nama":"Dr. Iskandar, M.M","jabatan":"Lektor Kepala","gelar":"M.M","nidn":"008"},{"id":"dsn_9","nama":"Dr. Rina Masruroh.,M.E.Sy","jabatan":"Lektor Kepala","gelar":"","nidn":"009"},{"id":"dsn_10","nama":"Prof. Dr. Agus Yadi Ismail, M.Si","jabatan":"Profesor","gelar":"M.Si","nidn":"010"},{"id":"dsn_11","nama":"Prof. Dr. Eeng Ahman, M.S","jabatan":"Profesor","gelar":"M.S","nidn":"011"},{"id":"dsn_12","nama":"Dr. Yeyen Suryani, M.Pd.","jabatan":"Lektor Kepala","gelar":"M.Pd.","nidn":"012"}],"mahasiswa":[{"id":"mhs_shp_0","nim":"20231710018","nama":"Azis Sutarma","jenis":"SHP","judul":"Dampak Perencanaan Keuangan dan Tingkat Literasi Keuangan Digital Terhadap Kemampuan Pengelolaan Keuangan Nasabah Peran Moderatif Adopsi Layanan Keuangan Digital","pembimbing1":"dsn_1","pembimbing2":"dsn_4","moderator":"dsn_4","penelaah":"dsn_3","penguji1":"","penguji2":"","penguji3":""},{"id":"mhs_shp_1","nim":"20241710002","nama":"Iwan Febri Suwandi","jenis":"SHP","judul":"PENGARUH GAYA KEPEMIMPINAN DAN KOMPETENSI PERANGKAT DESA TERHADAP KINERJA PEMERINTAH DESA DENGAN KOMITMEN ORGANISASI SEBAGAI MEDIASI (Studi Kasus pada Desa di Wilayah Kabupaten Kuningan)","pembimbing1":"dsn_3","pembimbing2":"dsn_5","moderator":"dsn_3","penelaah":"dsn_2","penguji1":"","penguji2":"","penguji3":""},{"id":"mhs_shp_2","nim":"20241710003","nama":"Najman Bahiran Nasution","jenis":"SHP","judul":"","pembimbing1":"dsn_3","pembimbing2":"dsn_4","moderator":"dsn_4","penelaah":"dsn_1","penguji1":"","penguji2":"","penguji3":""},{"id":"mhs_tesis_0","nim":"20241710015","nama":"Nenden Sugiharti","jenis":"Tesis","judul":"Pengaruh Employee Engagement, Self efficacy, dan Stres Kerja terhadap Kinerja pegawai dengan Kepemimpinan Transformasional sebagai variabel Moderasi Pada BUMD Kabupaten Kuningan","pembimbing1":"dsn_2","pembimbing2":"dsn_4","penguji1":"dsn_4","penguji2":"dsn_1","penguji3":"dsn_9","moderator":"","penelaah":""},{"id":"mhs_tesis_1","nim":"20241710017","nama":"Eko Wahono","jenis":"Tesis","judul":"Pengaruh Digital Marketing dan Relationship Marketing Terhadap Keputusan Pembelian Dengan Brand Image sebagai Mediasi dan Consumer References Sebagai Moderasi","pembimbing1":"dsn_2","pembimbing2":"dsn_5","penguji1":"dsn_2","penguji2":"dsn_1","penguji3":"dsn_6","moderator":"","penelaah":""},{"id":"mhs_tesis_2","nim":"20241710016","nama":"Nina Nurafni","jenis":"Tesis","judul":"Pengaruh Kepemimpinan Transformasional, Kompetensi Manajerial, dan Partisipasi Pegawai Terhadap Efektifitas Kepemimpinan Dengan Komitmen Organisasi sebagai Mediasi","pembimbing1":"dsn_1","pembimbing2":"dsn_4","penguji1":"dsn_1","penguji2":"dsn_2","penguji3":"dsn_9","moderator":"","penelaah":""},{"id":"mhs_tesis_3","nim":"20241710013","nama":"Andri Arga Kusumah","jenis":"Tesis","judul":"Pengaruh Lingkungan Kerja, Motivas serta Budaya Organisasi terhadap Kinerja Pegawai yang dimediasi oleh Motivasi (studi kasus pada kantor Satpol PP Kab. Kuningan)","pembimbing1":"dsn_3","pembimbing2":"dsn_6","penguji1":"dsn_3","penguji2":"dsn_1","penguji3":"dsn_4","moderator":"","penelaah":""},{"id":"mhs_tesis_4","nim":"20241710014","nama":"Devi Nur Aldevilah","jenis":"Tesis","judul":"","pembimbing1":"dsn_1","pembimbing2":"dsn_5","penguji1":"dsn_4","penguji2":"dsn_3","penguji3":"dsn_1","moderator":"","penelaah":""},{"id":"mhs_tesis_5","nim":"20241710001","nama":"Alisa Karomilah","jenis":"Tesis","judul":"","pembimbing1":"dsn_2","pembimbing2":"dsn_6","penguji1":"dsn_2","penguji2":"dsn_1","penguji3":"dsn_4","moderator":"","penelaah":""},{"id":"mhs_tesis_6","nim":"20241710006","nama":"Deni Sugandi","jenis":"Tesis","judul":"","pembimbing1":"dsn_2","pembimbing2":"dsn_6","penguji1":"dsn_2","penguji2":"dsn_1","penguji3":"dsn_4","moderator":"","penelaah":""}],"jadwal":{}};
+
+// ===================== AUTH & STATE =====================
+let CURRENT_USER = null;
+let CURRENT_ROLE = 'admin';
+let editingDosenId = null;
+let editingMhsId = null;
+let currentSlot = null;
+
+const SLOTS = ['08:00-09:30','09:30-11:00','11:00-12:30','12:30-13:30','13:30-15:00','15:00-16:30','16:30-18:00'];
+const HARIS = ['Jumat','Sabtu'];
+const RUANGANS = ['Ruangan 1','Ruangan 2','Ruangan 3'];
+
+const DB = {
+    dosen: JSON.parse(localStorage.getItem('ujian_dosen') || '[]'),
+    mahasiswa: JSON.parse(localStorage.getItem('ujian_mahasiswa') || '[]'),
+    jadwal: JSON.parse(localStorage.getItem('ujian_jadwal') || '{}')
+};
+
+function saveDB() {
+    localStorage.setItem('ujian_dosen', JSON.stringify(DB.dosen));
+    localStorage.setItem('ujian_mahasiswa', JSON.stringify(DB.mahasiswa));
+    localStorage.setItem('ujian_jadwal', JSON.stringify(DB.jadwal));
+}
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).substr(2); }
+
+function showToast(msg, type='success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.className = 'toast show ' + type;
+    setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ===================== LOGIN SYSTEM =====================
+function selectRole(role) {
+    CURRENT_ROLE = role;
+    document.querySelectorAll('.role-option').forEach(el => el.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('login-dosen-select').style.display = role === 'dosen' ? 'block' : 'none';
+    document.getElementById('login-mhs-select').style.display = role === 'mahasiswa' ? 'block' : 'none';
+    const userIn = document.getElementById('login-user');
+    const passIn = document.getElementById('login-pass');
+    if(role === 'admin') { userIn.placeholder = 'admin'; passIn.placeholder = 'admin123'; }
+    else if(role === 'dosen') { userIn.placeholder = 'NIDN Anda'; passIn.placeholder = 'NIDN Anda'; }
+    else { userIn.placeholder = 'NIM Anda'; passIn.placeholder = 'NIM Anda'; }
+}
+
+function populateLoginSelects() {
+    const dosenSel = document.getElementById('login-dosen-list');
+    dosenSel.innerHTML = '<option value="">-- Pilih Dosen --</option>';
+    DB.dosen.forEach(d => dosenSel.innerHTML += `<option value="${d.id}">${d.nama} (NIDN: ${d.nidn || '-'})</option>`);
+    const mhsSel = document.getElementById('login-mhs-list');
+    mhsSel.innerHTML = '<option value="">-- Pilih Mahasiswa --</option>';
+    DB.mahasiswa.forEach(m => mhsSel.innerHTML += `<option value="${m.id}">${m.nama} (NIM: ${m.nim})</option>`);
+}
+
+function doLogin() {
+    const user = document.getElementById('login-user').value.trim();
+    const pass = document.getElementById('login-pass').value.trim();
+
+    if(CURRENT_ROLE === 'admin') {
+        if(user === 'admin' && pass === 'admin123') {
+            CURRENT_USER = { role: 'admin', name: 'Administrator', id: 'admin' };
+        } else { showToast('Username atau password admin salah', 'error'); return; }
+    } else if(CURRENT_ROLE === 'dosen') {
+        const dosenId = document.getElementById('login-dosen-list').value;
+        if(!dosenId) { showToast('Pilih dosen terlebih dahulu', 'error'); return; }
+        const d = DB.dosen.find(x => x.id === dosenId);
+        if(!d) { showToast('Dosen tidak ditemukan', 'error'); return; }
+        if(pass !== d.nidn) { showToast('Password (NIDN) salah', 'error'); return; }
+        CURRENT_USER = { role: 'dosen', name: d.nama, id: d.id, nidn: d.nidn };
+    } else if(CURRENT_ROLE === 'mahasiswa') {
+        const mhsId = document.getElementById('login-mhs-list').value;
+        if(!mhsId) { showToast('Pilih mahasiswa terlebih dahulu', 'error'); return; }
+        const m = DB.mahasiswa.find(x => x.id === mhsId);
+        if(!m) { showToast('Mahasiswa tidak ditemukan', 'error'); return; }
+        if(pass !== m.nim) { showToast('Password (NIM) salah', 'error'); return; }
+        CURRENT_USER = { role: 'mahasiswa', name: m.nama, id: m.id, nim: m.nim };
+    }
+
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('main-app').style.display = 'block';
+    document.getElementById('user-display').innerHTML = `Masuk sebagai: <b>${CURRENT_USER.name}</b> <span class="badge badge-${CURRENT_USER.role}">${CURRENT_USER.role.toUpperCase()}</span>`;
+    applyRoleUI();
+    renderAll();
+}
+
+function doLogout() {
+    CURRENT_USER = null;
+    document.getElementById('main-app').style.display = 'none';
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('login-user').value = '';
+    document.getElementById('login-pass').value = '';
+}
+
+function applyRoleUI() {
+    const isAdmin = CURRENT_USER.role === 'admin';
+    const isDosen = CURRENT_USER.role === 'dosen';
+    const isMhs = CURRENT_USER.role === 'mahasiswa';
+
+    // Sembunyikan tab admin-only
+    document.querySelectorAll('[data-admin]').forEach(el => {
+        if(el.classList.contains('nav-tab')) el.style.display = isAdmin ? 'block' : 'none';
+        else el.style.display = isAdmin ? '' : 'none';
+    });
+
+    // Tab jadwal-saya hanya untuk dosen/mahasiswa
+    const tabSaya = document.querySelector('[data-mhs-dosen]');
+    if(tabSaya) tabSaya.style.display = (isDosen || isMhs) ? 'block' : 'none';
+
+    // Kalau bukan admin, redirect ke jadwal atau jadwal-saya
+    if(!isAdmin) {
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+        if(isDosen || isMhs) {
+            document.getElementById('panel-jadwal-saya').classList.add('active');
+            // aktifkan tab jadwal-saya
+            document.querySelectorAll('.nav-tab').forEach(t => { if(t.textContent.includes('Jadwal Saya')) t.classList.add('active'); });
+        } else {
+            document.getElementById('panel-jadwal').classList.add('active');
+        }
+    }
+}
+
+// ===================== INIT =====================
+function initData() {
+    if(DB.dosen.length === 0 && DB.mahasiswa.length === 0) {
+        DB.dosen = JSON.parse(JSON.stringify(DEFAULT_DATA.dosen));
+        DB.mahasiswa = JSON.parse(JSON.stringify(DEFAULT_DATA.mahasiswa));
+        DB.jadwal = JSON.parse(JSON.stringify(DEFAULT_DATA.jadwal || {}));
+        saveDB();
+    }
+}
+
+// ===================== RENDER ALL =====================
+function renderAll() {
+    populateLoginSelects();
+    populateDosenSelects();
+    renderDashboard();
+    renderDosen();
+    renderMahasiswa();
+    if(document.getElementById('panel-beban').classList.contains('active')) renderBeban();
+    if(document.getElementById('panel-jadwal').classList.contains('active')) renderJadwal();
+    if(document.getElementById('panel-jadwal-saya').classList.contains('active')) renderJadwalSaya();
+}
+
+function switchTab(tab) {
+    document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(el => el.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('panel-' + tab).classList.add('active');
+    if(tab === 'mahasiswa') populateDosenSelects();
+    if(tab === 'beban') renderBeban();
+    if(tab === 'jadwal') renderJadwal();
+    if(tab === 'dashboard') renderDashboard();
+    if(tab === 'dosen') renderDosen();
+    if(tab === 'jadwal-saya') renderJadwalSaya();
+}
+
+// ===================== DOSEN =====================
+function renderDosen() {
+    const tbody = document.querySelector('#table-dosen tbody');
+    tbody.innerHTML = '';
+    DB.dosen.forEach((d, i) => {
+        tbody.innerHTML += `<tr><td>${i+1}</td><td>${d.nama}</td><td>${d.nidn || '-'}</td><td>${d.jabatan}</td><td>${d.gelar || '-'}</td>
+            <td class="action-btns"><button class="btn btn-primary btn-sm" onclick="editDosen('${d.id}')">✏️</button><button class="btn btn-danger btn-sm" onclick="deleteDosen('${d.id}')">🗑️</button></td></tr>`;
+    });
+    if(DB.dosen.length === 0) tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Belum ada data dosen</td></tr>';
+}
+
+function saveDosen() {
+    const nama = document.getElementById('dosen-nama').value.trim();
+    const nidn = document.getElementById('dosen-nidn').value.trim();
+    const jabatan = document.getElementById('dosen-jabatan').value;
+    const gelar = document.getElementById('dosen-gelar').value.trim();
+    if(!nama || !nidn) { showToast('Nama dan NIDN wajib diisi!', 'error'); return; }
+    if(editingDosenId) {
+        const d = DB.dosen.find(x => x.id === editingDosenId);
+        d.nama = nama; d.nidn = nidn; d.jabatan = jabatan; d.gelar = gelar;
+        showToast('Dosen diperbarui');
+    } else {
+        DB.dosen.push({ id: uid(), nama, nidn, jabatan, gelar });
+        showToast('Dosen ditambahkan');
+    }
+    saveDB(); renderDosen(); resetDosenForm(); populateLoginSelects();
+}
+
+function editDosen(id) { const d = DB.dosen.find(x => x.id === id); document.getElementById('dosen-nama').value = d.nama; document.getElementById('dosen-nidn').value = d.nidn || ''; document.getElementById('dosen-jabatan').value = d.jabatan; document.getElementById('dosen-gelar').value = d.gelar || ''; editingDosenId = id; }
+function deleteDosen(id) { if(!confirm('Hapus dosen ini?')) return; DB.dosen = DB.dosen.filter(x => x.id !== id); saveDB(); renderDosen(); populateLoginSelects(); showToast('Dosen dihapus'); }
+function resetDosenForm() { document.getElementById('dosen-nama').value = ''; document.getElementById('dosen-nidn').value = ''; document.getElementById('dosen-jabatan').value = 'Profesor'; document.getElementById('dosen-gelar').value = ''; editingDosenId = null; }
+
+// ===================== MAHASISWA =====================
+function populateDosenSelects() {
+    const selects = ['mhs-pembimbing1','mhs-pembimbing2','mhs-penguji1','mhs-penguji2','mhs-penguji3','mhs-moderator','mhs-penelaah','modal-mhs'];
+    selects.forEach(sel => {
+        const el = document.getElementById(sel);
+        if(!el) return;
+        const current = el.value;
+        if(sel === 'modal-mhs') { el.innerHTML = '<option value="">-- Pilih Mahasiswa --</option>'; DB.mahasiswa.forEach(m => el.innerHTML += `<option value="${m.id}">${m.nim} - ${m.nama} (${m.jenis})</option>`); }
+        else { el.innerHTML = '<option value="">-- Pilih --</option>'; DB.dosen.forEach(d => el.innerHTML += `<option value="${d.id}">${d.nama}</option>`); }
+        el.value = current;
+    });
+}
+
+function updateFormJenis() {
+    const jenis = document.getElementById('mhs-jenis').value;
+    document.getElementById('fg-moderator').style.display = jenis === 'SHP' ? 'block' : 'none';
+    document.getElementById('fg-penelaah').style.display = jenis === 'SHP' ? 'block' : 'none';
+    document.getElementById('fg-penguji1').style.display = jenis === 'Tesis' ? 'block' : 'none';
+    document.getElementById('fg-penguji2').style.display = jenis === 'Tesis' ? 'block' : 'none';
+    document.getElementById('fg-penguji3').style.display = jenis === 'Tesis' ? 'block' : 'none';
+}
+
+function renderMahasiswa() {
+    const tbody = document.querySelector('#table-mahasiswa tbody');
+    tbody.innerHTML = '';
+    DB.mahasiswa.forEach((m, i) => {
+        let penguji = '';
+        if(m.jenis === 'SHP') penguji = `Mod: ${getDosenName(m.moderator)}, Pen: ${getDosenName(m.penelaah)}`;
+        else if(m.jenis === 'Tesis') penguji = `P1: ${getDosenName(m.penguji1)}, P2: ${getDosenName(m.penguji2)}, P3: ${getDosenName(m.penguji3)}`;
+        else penguji = '-';
+        tbody.innerHTML += `<tr><td>${i+1}</td><td>${m.nim}</td><td>${m.nama}</td><td><span class="badge badge-${m.jenis.toLowerCase()}">${m.jenis}</span></td><td>${m.judul || '-'}</td><td>${getDosenName(m.pembimbing1)}, ${getDosenName(m.pembimbing2)}</td><td>${penguji}</td>
+            <td class="action-btns"><button class="btn btn-primary btn-sm" onclick="editMahasiswa('${m.id}')">✏️</button><button class="btn btn-danger btn-sm" onclick="deleteMahasiswa('${m.id}')">🗑️</button></td></tr>`;
+    });
+    if(DB.mahasiswa.length === 0) tbody.innerHTML = '<tr><td colspan="8" class="empty-state">Belum ada data mahasiswa</td></tr>';
+}
+
+function saveMahasiswa() {
+    const nim = document.getElementById('mhs-nim').value.trim();
+    const nama = document.getElementById('mhs-nama').value.trim();
+    const jenis = document.getElementById('mhs-jenis').value;
+    const judul = document.getElementById('mhs-judul').value.trim();
+    const pembimbing1 = document.getElementById('mhs-pembimbing1').value;
+    const pembimbing2 = document.getElementById('mhs-pembimbing2').value;
+    if(!nim || !nama) { showToast('NIM dan Nama wajib diisi!', 'error'); return; }
+    let data = { id: editingMhsId || uid(), nim, nama, jenis, judul, pembimbing1, pembimbing2 };
+    if(jenis === 'SHP') { data.moderator = document.getElementById('mhs-moderator').value; data.penelaah = document.getElementById('mhs-penelaah').value; data.penguji1 = data.penguji2 = data.penguji3 = ''; }
+    else if(jenis === 'Tesis') { data.penguji1 = document.getElementById('mhs-penguji1').value; data.penguji2 = document.getElementById('mhs-penguji2').value; data.penguji3 = document.getElementById('mhs-penguji3').value; data.moderator = data.penelaah = ''; }
+    else { data.penguji1 = data.penguji2 = data.penguji3 = data.moderator = data.penelaah = ''; }
+    if(editingMhsId) { const idx = DB.mahasiswa.findIndex(x => x.id === editingMhsId); DB.mahasiswa[idx] = data; showToast('Mahasiswa diperbarui'); }
+    else { DB.mahasiswa.push(data); showToast('Mahasiswa ditambahkan'); }
+    saveDB(); renderMahasiswa(); resetMhsForm(); populateLoginSelects();
+}
+
+function editMahasiswa(id) {
+    const m = DB.mahasiswa.find(x => x.id === id);
+    document.getElementById('mhs-nim').value = m.nim; document.getElementById('mhs-nama').value = m.nama;
+    document.getElementById('mhs-jenis').value = m.jenis; document.getElementById('mhs-judul').value = m.judul || '';
+    document.getElementById('mhs-pembimbing1').value = m.pembimbing1; document.getElementById('mhs-pembimbing2').value = m.pembimbing2;
+    updateFormJenis(); populateDosenSelects();
+    if(m.jenis === 'SHP') { document.getElementById('mhs-moderator').value = m.moderator; document.getElementById('mhs-penelaah').value = m.penelaah; }
+    else if(m.jenis === 'Tesis') { document.getElementById('mhs-penguji1').value = m.penguji1; document.getElementById('mhs-penguji2').value = m.penguji2; document.getElementById('mhs-penguji3').value = m.penguji3; }
+    editingMhsId = id;
+}
+
+function deleteMahasiswa(id) { if(!confirm('Hapus mahasiswa ini?')) return; DB.mahasiswa = DB.mahasiswa.filter(x => x.id !== id); Object.keys(DB.jadwal).forEach(k => { if(DB.jadwal[k] && DB.jadwal[k].mhsId === id) delete DB.jadwal[k]; }); saveDB(); renderMahasiswa(); populateLoginSelects(); showToast('Mahasiswa dihapus'); }
+function resetMhsForm() { document.getElementById('mhs-nim').value = ''; document.getElementById('mhs-nama').value = ''; document.getElementById('mhs-jenis').value = 'SUP'; document.getElementById('mhs-judul').value = ''; document.getElementById('mhs-pembimbing1').value = ''; document.getElementById('mhs-pembimbing2').value = ''; document.getElementById('mhs-penguji1').value = ''; document.getElementById('mhs-penguji2').value = ''; document.getElementById('mhs-penguji3').value = ''; document.getElementById('mhs-moderator').value = ''; document.getElementById('mhs-penelaah').value = ''; editingMhsId = null; updateFormJenis(); }
+
+// ===================== BEBAN =====================
+function getDosenName(id) { if(!id) return '-'; const d = DB.dosen.find(x => x.id === id); return d ? d.nama : '-'; }
+
+function hitungBeban() {
+    const beban = {};
+    DB.dosen.forEach(d => beban[d.id] = { nama: d.nama, nidn: d.nidn || '', jabatan: d.jabatan, SUP:0, SHP:0, Tesis:0, total:0 });
+    DB.mahasiswa.forEach(m => {
+        const add = (id) => { if(id && beban[id]) { beban[id][m.jenis]++; beban[id].total++; } };
+        if(m.jenis === 'SHP') { add(m.moderator); add(m.penelaah); }
+        else if(m.jenis === 'Tesis') { add(m.penguji1); add(m.penguji2); add(m.penguji3); }
+    });
+    return beban;
+}
+
+function renderBeban() {
+    const beban = hitungBeban();
+    const tbody = document.querySelector('#table-beban tbody');
+    tbody.innerHTML = '';
+    let no = 1;
+    Object.values(beban).sort((a,b) => b.total - a.total).forEach(b => {
+        tbody.innerHTML += `<tr><td>${no++}</td><td>${b.nama}</td><td>${b.nidn}</td><td>${b.jabatan}</td><td>${b.SUP}</td><td>${b.SHP}</td><td>${b.Tesis}</td><td><strong>${b.total}</strong></td></tr>`;
+    });
+    const tbody2 = document.querySelector('#table-detail-beban tbody');
+    tbody2.innerHTML = '';
+    DB.mahasiswa.forEach((m,i) => {
+        let penguji = '';
+        if(m.jenis === 'SHP') penguji = `${getDosenName(m.moderator)} (Mod), ${getDosenName(m.penelaah)} (Pen)`;
+        else if(m.jenis === 'Tesis') penguji = `${getDosenName(m.penguji1)} (P1), ${getDosenName(m.penguji2)} (P2), ${getDosenName(m.penguji3)} (P3)`;
+        else penguji = '-';
+        tbody2.innerHTML += `<tr><td>${i+1}</td><td>${m.nim}</td><td>${m.nama}</td><td>${m.jenis}</td><td>${getDosenName(m.pembimbing1)}</td><td>${getDosenName(m.pembimbing2)}</td><td>${penguji}</td></tr>`;
+    });
+}
+
+// ===================== AUTO SCHEDULE =====================
+function getDosenIdsForUjian(m) {
+    if(m.jenis === 'SHP') return [m.moderator, m.penelaah].filter(Boolean);
+    if(m.jenis === 'Tesis') return [m.penguji1, m.penguji2, m.penguji3].filter(Boolean);
+    return [];
+}
+
+function getOccupiedDosenAt(hari, ruangan, slot) {
+    const key = `${hari}_${ruangan}_${slot}`;
+    const j = DB.jadwal[key];
+    if(!j) return [];
+    const m = DB.mahasiswa.find(x => x.id === j.mhsId);
+    return m ? getDosenIdsForUjian(m) : [];
+}
+
+function checkBentrok(mhsId, hari, ruangan, slot) {
+    const m = DB.mahasiswa.find(x => x.id === mhsId);
+    if(!m) return { bentrok: false };
+    const dosenUjian = getDosenIdsForUjian(m);
+    const occupied = getOccupiedDosenAt(hari, ruangan, slot);
+    const bentrokDosen = dosenUjian.filter(d => occupied.includes(d));
+    return { bentrok: bentrokDosen.length > 0, dosen: bentrokDosen.map(id => getDosenName(id)) };
+}
+
+function autoSchedule() {
+    if(!confirm('Buat jadwal otomatis untuk semua mahasiswa? Jadwal lama akan ditimpa.')) return;
+    DB.jadwal = {};
+    const unscheduled = [];
+
+    // Prioritas: SHP dulu, lalu Tesis
+    const sortedMhs = [...DB.mahasiswa].sort((a,b) => {
+        const order = { 'SHP': 1, 'Tesis': 2, 'SUP': 3 };
+        return (order[a.jenis] || 99) - (order[b.jenis] || 99);
+    });
+
+    for(const m of sortedMhs) {
+        if(m.jenis === 'SUP') continue; // SUP tidak perlu jadwal penguji
+        let placed = false;
+        for(const hari of HARIS) {
+            for(const ruangan of RUANGANS) {
+                for(const slot of SLOTS) {
+                    const key = `${hari}_${ruangan}_${slot}`;
+                    if(DB.jadwal[key]) continue; // slot sudah terisi
+                    const cek = checkBentrok(m.id, hari, ruangan, slot);
+                    if(!cek.bentrok) {
+                        DB.jadwal[key] = { mhsId: m.id, auto: true };
+                        placed = true;
+                        break;
+                    }
+                }
+                if(placed) break;
+            }
+            if(placed) break;
+        }
+        if(!placed) unscheduled.push(m);
+    }
+
+    // Untuk yang belum terjadwal, coba tempatkan dengan tanda bentrok (mobile)
+    for(const m of unscheduled) {
+        for(const hari of HARIS) {
+            for(const ruangan of RUANGANS) {
+                for(const slot of SLOTS) {
+                    const key = `${hari}_${ruangan}_${slot}`;
+                    if(!DB.jadwal[key]) {
+                        DB.jadwal[key] = { mhsId: m.id, auto: true, bentrok: true };
+                        placed = true;
+                        break;
+                    }
+                }
+                if(placed) break;
+            }
+            if(placed) break;
+        }
+    }
+
+    saveDB(); renderJadwal();
+    const total = Object.keys(DB.jadwal).length;
+    const bentrokCount = Object.values(DB.jadwal).filter(j => j.bentrok).length;
+    let msg = `Jadwal otomatis selesai! ${total} mahasiswa terjadwal.`;
+    if(bentrokCount > 0) msg += ` (${bentrokCount} dengan bentrok/mobile)`;
+    showToast(msg);
+}
+
+function clearAllJadwal() { if(!confirm('Kosongkan SEMUA jadwal?')) return; DB.jadwal = {}; saveDB(); renderJadwal(); showToast('Semua jadwal dikosongkan'); }
+
+// ===================== JADWAL =====================
+function renderJadwal() {
+    const hari = document.getElementById('jadwal-hari').value;
+    const ruangan = document.getElementById('jadwal-ruangan').value;
+    document.getElementById('jadwal-title').textContent = `${hari} - ${ruangan}`;
+    const container = document.getElementById('jadwal-container');
+
+    let html = '<div class="jadwal-grid">';
+    html += '<div class="jadwal-header">Waktu</div><div class="jadwal-header">Penguji I / Penelaah</div><div class="jadwal-header">Penguji II / Moderator</div><div class="jadwal-header">Penguji III</div>';
+
+    SLOTS.forEach(slot => {
+        const key = `${hari}_${ruangan}_${slot}`;
+        const j = DB.jadwal[key];
+        html += `<div class="jadwal-time">${slot}</div>`;
+
+        if(j) {
+            const m = DB.mahasiswa.find(x => x.id === j.mhsId);
+            if(m) {
+                const isBentrok = j.bentrok;
+                for(let idx=0; idx<3; idx++) {
+                    let dosenId = '';
+                    if(m.jenis === 'SHP') dosenId = idx===0 ? m.penelaah : (idx===1 ? m.moderator : '');
+                    else if(m.jenis === 'Tesis') dosenId = idx===0 ? m.penguji1 : (idx===1 ? m.penguji2 : m.penguji3);
+                    const dosen = getDosenName(dosenId);
+                    const mobileTag = isBentrok ? '<div class="mobile-tag">📱 MOBILE</div>' : '';
+                    html += `<div class="jadwal-cell occupied ${isBentrok ? 'bentrok' : ''}" onclick="openJadwal('${slot}')">
+                        ${idx===0 ? `<div class="jadwal-mhs">${m.nama}</div>` : ''}
+                        <div class="jadwal-dosen">${dosen}</div>
+                        ${idx===0 ? `<div class="jadwal-dosen" style="font-size:0.7rem;color:#888">${m.jenis} | ${m.nim}</div>${mobileTag}` : ''}
+                    </div>`;
+                }
+            } else {
+                for(let i=0;i<3;i++) html += `<div class="jadwal-cell" onclick="openJadwal('${slot}')"></div>`;
+            }
+        } else {
+            for(let i=0;i<3;i++) html += `<div class="jadwal-cell" onclick="openJadwal('${slot}')"></div>`;
+        }
+    });
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+function openJadwal(slot) {
+    if(CURRENT_USER.role !== 'admin') { showToast('Hanya admin yang dapat mengedit jadwal', 'error'); return; }
+    currentSlot = slot;
+    document.getElementById('modal-waktu').value = slot;
+    document.getElementById('modal-mhs').value = '';
+    document.getElementById('modal-p1').value = '';
+    document.getElementById('modal-p2').value = '';
+    document.getElementById('modal-p3').value = '';
+    document.getElementById('modal-bentrok-info').style.display = 'none';
+    populateDosenSelects();
+    const hari = document.getElementById('jadwal-hari').value;
+    const ruangan = document.getElementById('jadwal-ruangan').value;
+    const key = `${hari}_${ruangan}_${slot}`;
+    if(DB.jadwal[key]) {
+        document.getElementById('modal-mhs').value = DB.jadwal[key].mhsId;
+        updateModalDosen();
+    }
+    document.getElementById('modal-jadwal').classList.add('show');
+}
+
+function updateModalDosen() {
+    const mhsId = document.getElementById('modal-mhs').value;
+    if(!mhsId) return;
+    const m = DB.mahasiswa.find(x => x.id === mhsId);
+    if(!m) return;
+    const hari = document.getElementById('jadwal-hari').value;
+    const ruangan = document.getElementById('jadwal-ruangan').value;
+    const slot = currentSlot;
+    const cek = checkBentrok(mhsId, hari, ruangan, slot);
+    const info = document.getElementById('modal-bentrok-info');
+    if(cek.bentrok) { info.textContent = `⚠️ BENTROK: ${cek.dosen.join(', ')} sudah terjadwal di slot ini. Dosen bersangkutan akan diberi keterangan MOBILE.`; info.style.display = 'block'; }
+    else { info.style.display = 'none'; }
+
+    if(m.jenis === 'SHP') { document.getElementById('modal-p1').value = getDosenName(m.penelaah); document.getElementById('modal-p2').value = getDosenName(m.moderator); document.getElementById('modal-p3').value = '-'; document.getElementById('modal-fg-p3').style.display = 'none'; }
+    else if(m.jenis === 'Tesis') { document.getElementById('modal-p1').value = getDosenName(m.penguji1); document.getElementById('modal-p2').value = getDosenName(m.penguji2); document.getElementById('modal-p3').value = getDosenName(m.penguji3); document.getElementById('modal-fg-p3').style.display = 'block'; }
+    else { document.getElementById('modal-p1').value = '-'; document.getElementById('modal-p2').value = '-'; document.getElementById('modal-p3').value = '-'; document.getElementById('modal-fg-p3').style.display = 'none'; }
+}
+
+function saveJadwalCell() {
+    const mhsId = document.getElementById('modal-mhs').value;
+    if(!mhsId) { showToast('Pilih mahasiswa!', 'error'); return; }
+    const hari = document.getElementById('jadwal-hari').value;
+    const ruangan = document.getElementById('jadwal-ruangan').value;
+    const key = `${hari}_${ruangan}_${currentSlot}`;
+    const cek = checkBentrok(mhsId, hari, ruangan, currentSlot);
+    DB.jadwal[key] = { mhsId, bentrok: cek.bentrok };
+    saveDB(); renderJadwal(); closeModal(); showToast('Jadwal disimpan' + (cek.bentrok ? ' (dengan keterangan MOBILE)' : ''));
+}
+
+function hapusJadwalCell() {
+    const hari = document.getElementById('jadwal-hari').value;
+    const ruangan = document.getElementById('jadwal-ruangan').value;
+    const key = `${hari}_${ruangan}_${currentSlot}`;
+    delete DB.jadwal[key]; saveDB(); renderJadwal(); closeModal(); showToast('Jadwal dihapus');
+}
+
+function clearJadwal() {
+    if(!confirm('Kosongkan jadwal ini?')) return;
+    const hari = document.getElementById('jadwal-hari').value;
+    const ruangan = document.getElementById('jadwal-ruangan').value;
+    SLOTS.forEach(slot => delete DB.jadwal[`${hari}_${ruangan}_${slot}`]);
+    saveDB(); renderJadwal(); showToast('Jadwal dikosongkan');
+}
+
+function closeModal() { document.getElementById('modal-jadwal').classList.remove('show'); }
+
+// ===================== JADWAL SAYA =====================
+function renderJadwalSaya() {
+    const tbody = document.querySelector('#table-jadwal-saya tbody');
+    tbody.innerHTML = '';
+    const msg = document.getElementById('view-only-msg');
+    const items = [];
+
+    Object.entries(DB.jadwal).forEach(([key, j]) => {
+        const [hari, ruangan, ...slotParts] = key.split('_');
+        const slot = slotParts.join('_');
+        const m = DB.mahasiswa.find(x => x.id === j.mhsId);
+        if(!m) return;
+
+        let include = false;
+        let peran = '';
+        let dosenLain = [];
+
+        if(CURRENT_USER.role === 'mahasiswa' && m.id === CURRENT_USER.id) {
+            include = true;
+            peran = 'Mahasiswa';
+            if(m.jenis === 'SHP') dosenLain = [getDosenName(m.moderator) + ' (Mod)', getDosenName(m.penelaah) + ' (Pen)'];
+            else if(m.jenis === 'Tesis') dosenLain = [getDosenName(m.penguji1) + ' (P1)', getDosenName(m.penguji2) + ' (P2)', getDosenName(m.penguji3) + ' (P3)'];
+        } else if(CURRENT_USER.role === 'dosen') {
+            const myId = CURRENT_USER.id;
+            if(m.jenis === 'SHP') {
+                if(m.moderator === myId) { include = true; peran = 'Moderator'; dosenLain = [getDosenName(m.penelaah) + ' (Penelaah)']; }
+                else if(m.penelaah === myId) { include = true; peran = 'Penelaah'; dosenLain = [getDosenName(m.moderator) + ' (Moderator)']; }
+            } else if(m.jenis === 'Tesis') {
+                if(m.penguji1 === myId) { include = true; peran = 'Penguji I'; dosenLain = [getDosenName(m.penguji2) + ' (P2)', getDosenName(m.penguji3) + ' (P3)']; }
+                else if(m.penguji2 === myId) { include = true; peran = 'Penguji II'; dosenLain = [getDosenName(m.penguji1) + ' (P1)', getDosenName(m.penguji3) + ' (P3)']; }
+                else if(m.penguji3 === myId) { include = true; peran = 'Penguji III'; dosenLain = [getDosenName(m.penguji1) + ' (P1)', getDosenName(m.penguji2) + ' (P2)']; }
+            }
+        }
+
+        if(include) {
+            items.push({ hari, ruangan, slot, m, peran, dosenLain: dosenLain.join(', '), bentrok: j.bentrok });
+        }
+    });
+
+    if(CURRENT_USER.role === 'mahasiswa') msg.textContent = '🎓 Ini adalah jadwal ujian Anda. Pastikan hadir tepat waktu!';
+    else msg.textContent = '👨‍🏫 Ini adalah jadwal menguji Anda. Periksa keterangan MOBILE jika ada bentrok.';
+
+    if(items.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="empty-state">Tidak ada jadwal untuk Anda</td></tr>';
+        return;
+    }
+
+    items.forEach(it => {
+        const bentrokTag = it.bentrok ? '<span style="color:var(--danger);font-weight:700">⚠️ MOBILE</span>' : '-';
+        tbody.innerHTML += `<tr>
+            <td>${it.hari}</td><td>${it.slot}</td><td>${it.ruangan}</td>
+            <td>${it.m.nim}</td><td>${it.m.nama}</td><td>${it.m.judul || '-'}</td>
+            <td><b>${it.peran}</b></td><td>${it.dosenLain}<br><small>${bentrokTag}</small></td>
+        </tr>`;
+    });
+}
+
+// ===================== DASHBOARD =====================
+function renderDashboard() {
+    document.getElementById('stat-dosen').textContent = DB.dosen.length;
+    document.getElementById('stat-mhs').textContent = DB.mahasiswa.length;
+    document.getElementById('stat-sup').textContent = DB.mahasiswa.filter(m => m.jenis === 'SUP').length;
+    document.getElementById('stat-shp').textContent = DB.mahasiswa.filter(m => m.jenis === 'SHP').length;
+    document.getElementById('stat-tesis').textContent = DB.mahasiswa.filter(m => m.jenis === 'Tesis').length;
+    document.getElementById('stat-jadwal').textContent = Object.keys(DB.jadwal).length;
+    const beban = hitungBeban();
+    const tbody = document.querySelector('#table-ringkasan tbody');
+    tbody.innerHTML = '';
+    Object.values(beban).filter(b => b.total > 0).sort((a,b) => b.total - a.total).slice(0,10).forEach((b,i) => {
+        tbody.innerHTML += `<tr><td>${i+1}</td><td>${b.nama}</td><td>${b.jabatan}</td><td><span class="dosen-count">${b.total}</span></td></tr>`;
+    });
+    if(tbody.innerHTML === '') tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Belum ada data menguji</td></tr>';
+}
+
+// ===================== EXPORT CSV (Format Excel) =====================
+function downloadCSV(csv, filename) {
+    const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob); link.download = filename; link.click();
+}
+
+function exportDosenCSV() {
+    let csv = 'Nama,Jumlah Menguji,,Jumlah Ujian :,10\n';
+    const beban = hitungBeban();
+    DB.dosen.forEach(d => {
+        const b = beban[d.id] || { total: 0 };
+        csv += `"${d.nama}",${b.total},,\n`;
+    });
+    downloadCSV(csv, 'Nama_Dosen.csv');
+}
+
+function exportSUP_CSV() {
+    let csv = 'No,NIM,Nama,Judul,Pembimbing I,Pembimbing II,Penguji I,Penguji II,Penguji III,Jumlah,\n';
+    let no = 1;
+    DB.mahasiswa.filter(m => m.jenis === 'SUP').forEach(m => {
+        csv += `${no},${m.nim},"${m.nama}","${m.judul || ''}","${getDosenName(m.pembimbing1)}","${getDosenName(m.pembimbing2)}",,,,0,\n`; no++;
+    });
+    // Tambah baris dosen dengan jumlah 0
+    DB.dosen.forEach(d => csv += `,,,,,,,,,0,"${d.nama}"\n`);
+    csv += 'Jumlah,0,,,,,,,,,\n';
+    downloadCSV(csv, 'SUP.csv');
+}
+
+function exportSHP_CSV() {
+    let csv = 'No,NIM,Nama,Judul,Pembimbing I,Pembimbing II,Moderator,Penelaah,Penguji III,Jumlah,\n';
+    let no = 1;
+    DB.mahasiswa.filter(m => m.jenis === 'SHP').forEach(m => {
+        csv += `${no},${m.nim},"${m.nama}","${m.judul || ''}","${getDosenName(m.pembimbing1)}","${getDosenName(m.pembimbing2)}","${getDosenName(m.moderator)}","${getDosenName(m.penelaah)}",,\n`; no++;
+    });
+    // Rekap dosen
+    const beban = hitungBeban();
+    DB.dosen.forEach(d => {
+        const b = beban[d.id] || { SHP: 0 };
+        csv += `,,,,,,,,,${b.SHP},"${d.nama}"\n`;
+    });
+    csv += 'Jumlah,0,,,,,,,,,\n';
+    downloadCSV(csv, 'SHP.csv');
+}
+
+function exportTesisCSV() {
+    let csv = 'No,NIM,Nama,Judul,Pembimbing I,Pembimbing II,Penguji I,Penguji II (Penelaah SHP),Penguji III,Jumlah,\n';
+    let no = 1;
+    DB.mahasiswa.filter(m => m.jenis === 'Tesis').forEach(m => {
+        csv += `${no},${m.nim},"${m.nama}","${m.judul || ''}","${getDosenName(m.pembimbing1)}","${getDosenName(m.pembimbing2)}","${getDosenName(m.penguji1)}","${getDosenName(m.penguji2)}","${getDosenName(m.penguji3)}",\n`; no++;
+    });
+    const beban = hitungBeban();
+    DB.dosen.forEach(d => {
+        const b = beban[d.id] || { Tesis: 0 };
+        csv += `,,,,,,,,,${b.Tesis},"${d.nama}"\n`;
+    });
+    csv += 'Jumlah,0,,,,,,,,,\n';
+    downloadCSV(csv, 'Tesis.csv');
+}
+
+function exportMhsCSV() {
+    let csv = 'No,NIM,Nama,Jenis,Judul,Pembimbing I,Pembimbing II,Penguji/Moderator\n';
+    DB.mahasiswa.forEach((m,i) => {
+        let penguji = '';
+        if(m.jenis === 'SHP') penguji = `Mod:${getDosenName(m.moderator)};Pen:${getDosenName(m.penelaah)}`;
+        else if(m.jenis === 'Tesis') penguji = `P1:${getDosenName(m.penguji1)};P2:${getDosenName(m.penguji2)};P3:${getDosenName(m.penguji3)}`;
+        csv += `${i+1},${m.nim},"${m.nama}",${m.jenis},"${m.judul || ''}","${getDosenName(m.pembimbing1)}","${getDosenName(m.pembimbing2)}","${penguji}"\n`;
+    });
+    downloadCSV(csv, 'Data_Mahasiswa.csv');
+}
+
+function exportBebanCSV() {
+    const beban = hitungBeban();
+    let csv = 'No,Nama Dosen,NIDN,Jabatan,SUP,SHP,Tesis,Total Menguji\n';
+    let no = 1;
+    Object.values(beban).sort((a,b) => b.total - a.total).forEach(b => {
+        csv += `${no++},"${b.nama}","${b.nidn}","${b.jabatan}",${b.SUP},${b.SHP},${b.Tesis},${b.total}\n`;
+    });
+    downloadCSV(csv, 'Beban_Menguji.csv');
+}
+
+function exportJadwalCSV() {
+    const hari = document.getElementById('jadwal-hari').value;
+    const ruangan = document.getElementById('jadwal-ruangan').value;
+    let csv = `Waktu,Penguji I/Penelaah,Penguji II/Moderator,Penguji III\n`;
+    SLOTS.forEach(slot => {
+        const key = `${hari}_${ruangan}_${slot}`;
+        const j = DB.jadwal[key];
+        if(j) {
+            const m = DB.mahasiswa.find(x => x.id === j.mhsId);
+            if(m) {
+                let p1='',p2='',p3='';
+                if(m.jenis==='SHP'){p1=getDosenName(m.penelaah);p2=getDosenName(m.moderator);p3='-';}
+                else if(m.jenis==='Tesis'){p1=getDosenName(m.penguji1);p2=getDosenName(m.penguji2);p3=getDosenName(m.penguji3);}
+                csv += `"${slot}","${p1}","${p2}","${p3}"\n`;
+            } else csv += `"${slot}",,,\n`;
+        } else csv += `"${slot}",,,\n`;
+    });
+    downloadCSV(csv, `Jadwal_${hari}_${ruangan}.csv`);
+}
+
+function exportJadwalJumatCSV() {
+    let csv = 'Waktu,Ruangan 1 - P1,Ruangan 1 - P2,Ruangan 1 - P3,Ruangan 2 - P1,Ruangan 2 - P2,Ruangan 2 - P3,Ruangan 3 - P1,Ruangan 3 - P2,Ruangan 3 - P3\n';
+    SLOTS.forEach(slot => {
+        csv += `"${slot}"`;
+        RUANGANS.forEach(r => {
+            const key = `Jumat_${r}_${slot}`;
+            const j = DB.jadwal[key];
+            let p1='';let p2='';let p3='';
+            if(j) { const m = DB.mahasiswa.find(x => x.id === j.mhsId); if(m) { if(m.jenis==='SHP'){p1=getDosenName(m.penelaah);p2=getDosenName(m.moderator);} else if(m.jenis==='Tesis'){p1=getDosenName(m.penguji1);p2=getDosenName(m.penguji2);p3=getDosenName(m.penguji3);} } }
+            csv += `,"${p1}","${p2}","${p3}"`;
+        });
+        csv += '\n';
+    });
+    downloadCSV(csv, 'Jadwal_Jumat.csv');
+}
+
+function exportJadwalSabtuCSV() {
+    let csv = 'Waktu,Ruangan 1 - P1,Ruangan 1 - P2,Ruangan 1 - P3,Ruangan 2 - P1,Ruangan 2 - P2,Ruangan 2 - P3,Ruangan 3 - P1,Ruangan 3 - P2,Ruangan 3 - P3\n';
+    SLOTS.forEach(slot => {
+        csv += `"${slot}"`;
+        RUANGANS.forEach(r => {
+            const key = `Sabtu_${r}_${slot}`;
+            const j = DB.jadwal[key];
+            let p1='';let p2='';let p3='';
+            if(j) { const m = DB.mahasiswa.find(x => x.id === j.mhsId); if(m) { if(m.jenis==='SHP'){p1=getDosenName(m.penelaah);p2=getDosenName(m.moderator);} else if(m.jenis==='Tesis'){p1=getDosenName(m.penguji1);p2=getDosenName(m.penguji2);p3=getDosenName(m.penguji3);} } }
+            csv += `,"${p1}","${p2}","${p3}"`;
+        });
+        csv += '\n';
+    });
+    downloadCSV(csv, 'Jadwal_Sabtu.csv');
+}
+
+// ===================== DATABASE ACTIONS =====================
+function exportDatabase() {
+    const data = { dosen: DB.dosen, mahasiswa: DB.mahasiswa, jadwal: DB.jadwal };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'database_ujian_' + new Date().toISOString().slice(0,10) + '.json';
+    link.click();
+    showToast('Database di-export');
+}
+
+function importDatabase(event) {
+    const file = event.target.files[0]; if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = JSON.parse(e.target.result);
+            if(data.dosen && data.mahasiswa) {
+                DB.dosen = data.dosen; DB.mahasiswa = data.mahasiswa; DB.jadwal = data.jadwal || {};
+                saveDB(); renderAll(); showToast('Database di-import');
+            } else showToast('Format tidak valid', 'error');
+        } catch(err) { showToast('Gagal: ' + err.message, 'error'); }
+    };
+    reader.readAsText(file); event.target.value = '';
+}
+
+function resetToDefault() {
+    if(!confirm('Reset ke data awal? Semua perubahan hilang.')) return;
+    DB.dosen = JSON.parse(JSON.stringify(DEFAULT_DATA.dosen));
+    DB.mahasiswa = JSON.parse(JSON.stringify(DEFAULT_DATA.mahasiswa));
+    DB.jadwal = {}; saveDB(); renderAll(); showToast('Data direset');
+}
+
+function clearAllData() {
+    if(!confirm('Hapus SEMUA data?')) return;
+    DB.dosen = []; DB.mahasiswa = []; DB.jadwal = {}; saveDB(); renderAll(); showToast('Semua data dihapus');
+}
+
+// ===================== EVENT LISTENERS =====================
+document.getElementById('jadwal-hari').addEventListener('change', renderJadwal);
+document.getElementById('jadwal-ruangan').addEventListener('change', renderJadwal);
+
+// ===================== INIT =====================
+initData();
+populateLoginSelects();
+</script>
+</body>
+</html>
