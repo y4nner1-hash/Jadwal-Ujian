@@ -1,16 +1,16 @@
-# 🎓 Sistem Penjadwalan Ujian YanNeri v9.1 Ultimate
+# 🎓 Sistem Penjadwalan Ujian YanNeri v9.2 Ultimate
 
 Aplikasi web untuk tata kelola jadwal ujian akademik (SUP, SHP, dan Tesis) di tingkat pascasarjana. Dibangun sebagai **Single Page Application (SPA)** menggunakan HTML, CSS, dan JavaScript murni — tanpa framework backend.
 
 ---
 
-## ✨ Fitur Utama
+## ✨ Fitur Utama v9.2
 
 | Modul | Keterangan |
 |-------|------------|
 | **Multi-Role Login** | Admin, Dosen, dan Mahasiswa dengan hak akses berbeda |
 | **Master Data Dosen** | CRUD data dosen lengkap dengan NIDN |
-| **Database Mahasiswa** | Input manual, import/export Excel, bulk edit jadwal |
+| **Database Mahasiswa** | Input manual, import/export Excel, bulk edit jadwal, filter status chip |
 | **Matriks Jadwal** | Tampilan side-by-side 2 ruangan dengan deteksi bentrok otomatis |
 | **Auto-Schedule** | Penjadwalan otomatis berurutan dengan slot waktu & rotasi ruangan |
 | **Lock Mechanism** | Kunci jadwal yang sudah ujian agar tidak bisa diedit |
@@ -18,76 +18,62 @@ Aplikasi web untuk tata kelola jadwal ujian akademik (SUP, SHP, dan Tesis) di ti
 | **Rekap Honor Dosen** | Export Excel rincian beban membimbing vs menguji |
 | **Backup & Restore** | Export/import database dalam format JSON |
 | **Dark Mode** | Toggle tema terang/gelap dengan persistensi |
-| **Print/PDF Ready** | Layout khusus untuk cetak jadwal bersih |
-| **Share WhatsApp** | Kirim pemberitahuan jadwal langsung ke WhatsApp |
+| **Print/PDF Ready** | Layout khusus untuk cetak jadwal bersih, anti-potong, auto-hide ruangan kosong |
+| **Share WhatsApp** | Kirim pemberitahuan jadwal individu atau grup ke WhatsApp |
+| **Filter Status** | Chip filter: Menunggu Jadwal / Siap Ujian / Selesai / Semua |
+| **Sticky Header Tabel** | Header tabel tetap terlihat saat scroll |
+| **Collapsible Form** | Form input mahasiswa bisa disembunyikan untuk hemat ruang |
+| **Cloud Sync Ready** | Siap integrasi Google Apps Script untuk sinkronisasi antar-perangkat |
 
 ---
 
-## 🚀 Cara Deploy ke GitHub Pages (Gratis)
+## 🆕 Apa yang Baru di v9.2?
 
-GitHub Pages menyediakan hosting statis gratis dengan subdomain `github.io`. Ikuti langkah berikut:
+1. **Filter Status Chip** — Filter mahasiswa berdasarkan status: Menunggu Jadwal (🔴), Siap Ujian (🔵), Selesai (🟢)
+2. **Status Badge Klik** — Klik langsung badge status di tabel untuk toggle lock/unlock
+3. **Sticky Header** — Header tabel mahasiswa & dosen menempel saat scroll
+4. **Collapsible Form** — Form input mahasiswa bisa dibuka/tutup dengan tombol
+5. **Share Grup WA** — Admin bisa share seluruh jadwal aktif dalam 1 pesan WhatsApp grup
+6. **Label Peran Dinamis** — Moderator/Penelaah untuk SHP, Penguji untuk Tesis
+7. **Print Optimized** — Anti-potong halaman, auto-hide ruangan kosong saat cetak
+8. **Truncate Judul** — Judul panjang dipotong dengan ellipsis, hover untuk lihat penuh
+9. **Bulk Bar Auto-hide** — Panel bulk edit hanya muncul saat ada data terpilih
+10. **Cloud Sync** — Siap terhubung ke Google Apps Script untuk sinkronisasi database
 
-### 1. Buat Repository Baru
+---
+
+## 🚀 Deploy ke GitHub Pages (Gratis)
+
+### 1. Buat Repository
 1. Buka [github.com/new](https://github.com/new)
-2. Isi **Repository name**: `yanneri-schedule` (atau nama lain)
-3. Pilih **Public**
-4. Klik **Create repository**
+2. Isi **Repository name**: `yanneri-schedule`
+3. Pilih **Public** → **Create repository**
 
-### 2. Upload File ke Repository
-**Opsi A: Via Web (Paling Mudah)**
-1. Di halaman repo baru, klik **"uploading an existing file"**
-2. Drag & drop semua file dari folder ini:
-   - `index.html`
-   - `css/style.css`
-   - `js/app.js`
-   - `README.md`
-   - `.nojekyll`
-3. Klik **Commit changes**
-
-**Opsi B: Via Git Command Line**
-```bash
-git clone https://github.com/USERNAME/yanneri-schedule.git
-cd yanneri-schedule
-# copy semua file ke folder ini
-git add .
-git commit -m "Initial deploy"
-git push origin main
-```
+### 2. Upload File
+Drag & drop semua file dari folder ini ke repo:
+- `index.html`
+- `css/style.css`
+- `js/app.js`
+- `README.md`
+- `.nojekyll`
 
 ### 3. Aktifkan GitHub Pages
-1. Di repo, masuk ke menu **Settings** → **Pages** (di sidebar kiri)
-2. Pada bagian **Build and deployment**:
-   - **Source**: Pilih **Deploy from a branch**
-   - **Branch**: Pilih `main` → folder `/(root)`
+1. **Settings** → **Pages** (sidebar kiri)
+2. **Source**: `Deploy from a branch` → `main` → `/(root)`
 3. Klik **Save**
-4. Tunggu 1–2 menit, lalu akses:  
-   `https://USERNAME.github.io/yanneri-schedule/`
-
-> **Catatan**: Ganti `USERNAME` dengan username GitHub Anda.
+4. Akses: `https://USERNAME.github.io/yanneri-schedule/`
 
 ---
 
-## 🛠️ Cara Edit / Kontribusi
+## ✏️ Cara Edit
 
-Karena file sudah dipisah, Anda bisa mengedit bagian tertentu tanpa risiko merusak yang lain:
+| File | Edit Jika Ingin |
+|------|-----------------|
+| `index.html` | Ubah layout, tambah field, modifikasi struktur halaman |
+| `css/style.css` | Ganti warna tema, font, responsive mobile, layout cetak |
+| `js/app.js` | Tambah fitur, ubah aturan bisnis, perbaiki logika |
 
-| File | Isi | Edit Jika |
-|------|-----|-----------|
-| `index.html` | Struktur halaman, form, tabel | Mengubah layout atau menambah field baru |
-| `css/style.css` | Semua styling, tema, responsive, print | Mengubah warna, font, tampilan mobile, atau layout cetak |
-| `js/app.js` | Logika aplikasi, data, fungsi | Mengubah aturan bisnis, menambah fitur, memperbaiki bug |
-
-### Edit Online (Tanpa Install Apa Pun)
-1. Buka repo di GitHub
-2. Klik file yang ingin diedit (misal: `js/app.js`)
-3. Klik ikon pensil **✏️ Edit this file**
-4. Lakukan perubahan, scroll ke bawah, isi **Commit changes** → klik **Commit**
-5. Perubahan langsung live di website dalam 1–2 menit!
-
-### Edit Lokal (Lebih Nyaman)
-1. Clone repo ke komputer
-2. Buka folder di VS Code / editor favorit Anda
-3. Edit file, lalu commit & push
+**Edit Online:** Buka file di GitHub → ikon pensil ✏️ → edit → Commit → auto-update live.
 
 ---
 
@@ -95,47 +81,41 @@ Karena file sudah dipisah, Anda bisa mengedit bagian tertentu tanpa risiko merus
 
 ```
 yanneri-schedule/
-├── index.html          # Entry point aplikasi
+├── index.html          # Entry point (17.8 KB)
 ├── css/
-│   └── style.css       # Styling & tema
+│   └── style.css       # Styling & tema (9.9 KB)
 ├── js/
-│   └── app.js          # Logika & data aplikasi
-├── README.md           # Dokumentasi ini
-└── .nojekyll           # Menonaktifkan Jekyll (opsional tapi direkomendasikan)
+│   └── app.js          # Logika & data (35.2 KB)
+├── README.md           # Dokumentasi
+└── .nojekyll           # Disable Jekyll processing
 ```
 
 ---
 
-## 🔐 Informasi Login Default
+## 🔐 Login Default
 
-| Role | Username/Cara Login | Password |
-|------|---------------------|----------|
-| **Admin** | `admin` | `cucu` |
+| Role | Cara Login | Password |
+|------|-----------|----------|
+| **Admin** | Username: `admin` | `cucu` |
 | **Dosen** | Pilih dari dropdown | — |
 | **Mahasiswa** | Pilih dari dropdown | — |
 
-> **Penting**: Ganti password admin di file `js/app.js` sebelum digunakan produksi! Cari `document.getElementById('login-pass').value === 'cucu'`
+> **Penting:** Ganti password admin di `js/app.js` sebelum produksi! Cari `'cucu'`
 
 ---
 
-## ⚠️ Catatan Keamanan
-- Aplikasi ini berjalan **100% di client-side** (browser). Data disimpan di `localStorage` per browser/perangkat.
-- Untuk multi-device sync, aktifkan fitur **Backup/Restore JSON** secara rutin.
-- Tidak ada enkripsi data di localStorage. Hindari menyimpan data sensitif sebenarnya jika perangkat bersifat publik.
+## ⚠️ Catatan
+- Data tersimpan di `localStorage` browser (per-perangkat)
+- Gunakan **Backup JSON** rutin untuk keamanan data
+- Fitur Cloud Sync memerlukan Google Apps Script terpisah
 
 ---
 
-## 📱 Kompatibilitas
-- ✅ Chrome / Edge / Firefox / Safari (terbaru)
-- ✅ Android Browser & Chrome Mobile
-- ✅ iOS Safari
-- ⚠️ Internet Explorer tidak didukung
+## 📱 Kompatibel
+- Chrome / Edge / Firefox / Safari (terbaru)
+- Android & iOS browser
+- ❌ Internet Explorer tidak didukung
 
 ---
 
-## 📝 Lisensi
-Proyek ini dibuat untuk keperluan akademik. Bebas digunakan, dimodifikasi, dan didistribusikan ulang untuk kepentingan non-komersial.
-
----
-
-**Dibangun dengan ❤️ untuk kemudahan tata kelola ujian YanNeri.**
+**Dibangun untuk kemudahan tata kelola ujian YanNeri.**
